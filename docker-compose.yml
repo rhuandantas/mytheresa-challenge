@@ -8,6 +8,6 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: pg_isready
+      test: pg_isready -U postgres
       timeout: 5s
       retries: 5
