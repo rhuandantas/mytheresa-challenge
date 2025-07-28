@@ -1,7 +1,7 @@
 package catalog
 
 import (
-	"encoding/json"
+	"github.com/mytheresa/go-hiring-challenge/app/api"
 	"github.com/mytheresa/go-hiring-challenge/app/repositories"
 	"net/http"
 	"strconv"
@@ -40,7 +40,7 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	// Validate request parameters
 	products, total, err := h.repo.GetAllProducts(params.Offset, params.Limit, params.Category, params.PriceLt)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		api.ErrorResponse(w, http.StatusInternalServerError, "failed to fetch products")
 		return
 	}
 
@@ -62,10 +62,7 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 		Total:    total,
 	}
 
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	api.OKResponse(w, response)
 }
 func parseRequestParams(r *http.Request) RequestParams {
 	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))

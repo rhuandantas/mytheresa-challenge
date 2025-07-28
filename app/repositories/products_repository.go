@@ -7,6 +7,7 @@ import (
 
 type ProductRepository interface {
 	GetAllProducts(page, limit int, category string, priceLt float64) ([]models.Product, int64, error)
+	GetProductDetails(id uint64) (*models.Product, error)
 }
 
 type ProductsRepository struct {
@@ -23,7 +24,7 @@ func (r *ProductsRepository) GetAllProducts(offset, limit int, category string, 
 	var products []models.Product
 	var total int64
 
-	query := r.db.Model(&models.Product{}).Preload("Variants").Preload("Category")
+	query := r.db.Model(&models.Product{}).Preload("Category")
 
 	if category != "" {
 		query = query.Joins("JOIN categories ON categories.id = products.category_id").Where("categories.code = ?", category)
@@ -41,4 +42,12 @@ func (r *ProductsRepository) GetAllProducts(offset, limit int, category string, 
 		return nil, 0, err
 	}
 	return products, total, nil
+}
+
+func (r *ProductsRepository) GetProductDetails(id uint64) (*models.Product, error) {
+	var product models.Product
+	if err := r.db.Preload("Variants").Preload("Category").First(&product, id).Error; err != nil {
+		return nil, err
+	}
+	return &product, nil
 }

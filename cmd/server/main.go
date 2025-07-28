@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/mytheresa/go-hiring-challenge/app/repositories"
+	"github.com/mytheresa/go-hiring-challenge/app/variants"
 	"log"
 	"net/http"
 	"os"
@@ -37,10 +38,12 @@ func main() {
 	// Initialize handlers
 	prodRepo := repositories.NewProductsRepository(db)
 	cat := catalog.NewCatalogHandler(prodRepo)
+	variant := variants.NewVariantHandler(prodRepo)
 
 	// Set up routing
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /catalog", cat.HandleGet)
+	mux.HandleFunc("GET /catalog/", variant.HandleGet)
 
 	// Set up the HTTP server
 	srv := &http.Server{
