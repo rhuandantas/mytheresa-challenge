@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"github.com/mytheresa/go-hiring-challenge/app/repositories"
 	"net/http"
+	"strconv"
 )
 
 type Response struct {
 	Products []Product `json:"products"`
+	Total    int64     `json:"total"`
 }
 
 type Product struct {
@@ -27,16 +29,29 @@ func NewCatalogHandler(r repositories.ProductRepository) *Handler {
 }
 
 func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
-	res, err := h.repo.GetAllProducts()
+	// Parse offset and limit
+	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	if limit < 1 {
+		limit = 10
+	}
+	if limit > 100 {
+		limit = 100
+	}
+	if offset < 0 {
+		offset = 0
+	}
+
+	products, total, err := h.repo.GetAllProducts(offset, limit)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	// Map response
-	products := make([]Product, len(res))
-	for i, p := range res {
-		products[i] = Product{
+	respProducts := make([]Product, len(products))
+	for i, p := range products {
+		respProducts[i] = Product{
 			Code:     p.Code,
 			Price:    p.Price.InexactFloat64(),
 			Category: p.Category.Name,
@@ -47,7 +62,8 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	response := Response{
-		Products: products,
+		Products: respProducts,
+		Total:    total,
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
