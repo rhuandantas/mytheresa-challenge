@@ -6,7 +6,7 @@ import (
 )
 
 type ProductRepository interface {
-	GetAllProducts(offset, limit int) ([]models.Product, int64, error)
+	GetAllProducts(page, limit int, category string, priceLt float64) ([]models.Product, int64, error)
 }
 
 type ProductsRepository struct {
@@ -19,17 +19,25 @@ func NewProductsRepository(db *gorm.DB) ProductRepository {
 	}
 }
 
-func (r *ProductsRepository) GetAllProducts(offset, limit int) ([]models.Product, int64, error) {
+func (r *ProductsRepository) GetAllProducts(offset, limit int, category string, priceLt float64) ([]models.Product, int64, error) {
 	var products []models.Product
 	var total int64
-	// Count total products
-	if err := r.db.Model(&models.Product{}).Count(&total).Error; err != nil {
+
+	query := r.db.Model(&models.Product{}).Preload("Variants").Preload("Category")
+
+	if category != "" {
+		query = query.Joins("JOIN categories ON categories.id = products.category_id").Where("categories.code = ?", category)
+	}
+	if priceLt > 0 {
+		query = query.Where("products.price < ?", priceLt)
+	}
+
+	// Count total with filters
+	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	// Fetch paginated products
-	if err := r.db.Preload("Variants").Preload("Category").
-		Offset(offset).Limit(limit).Find(&products).Error; err != nil {
+	if err := query.Offset(offset).Limit(limit).Find(&products).Error; err != nil {
 		return nil, 0, err
 	}
 	return products, total, nil

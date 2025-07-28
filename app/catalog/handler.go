@@ -12,6 +12,13 @@ type Response struct {
 	Total    int64     `json:"total"`
 }
 
+type RequestParams struct {
+	Offset   int
+	Limit    int
+	Category string
+	PriceLt  float64
+}
+
 type Product struct {
 	Code     string  `json:"code"`
 	Price    float64 `json:"price"`
@@ -29,20 +36,9 @@ func NewCatalogHandler(r repositories.ProductRepository) *Handler {
 }
 
 func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
-	// Parse offset and limit
-	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
-	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	if limit < 1 {
-		limit = 10
-	}
-	if limit > 100 {
-		limit = 100
-	}
-	if offset < 0 {
-		offset = 0
-	}
-
-	products, total, err := h.repo.GetAllProducts(offset, limit)
+	params := parseRequestParams(r)
+	// Validate request parameters
+	products, total, err := h.repo.GetAllProducts(params.Offset, params.Limit, params.Category, params.PriceLt)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -69,5 +65,33 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+}
+func parseRequestParams(r *http.Request) RequestParams {
+	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	if limit < 1 {
+		limit = 10
+	}
+	if limit > 100 {
+		limit = 100
+	}
+	if offset < 0 {
+		offset = 0
+	}
+
+	category := r.URL.Query().Get("category")
+	priceLt := 0.0
+	if v := r.URL.Query().Get("price_lt"); v != "" {
+		if f, err := strconv.ParseFloat(v, 64); err == nil {
+			priceLt = f
+		}
+	}
+
+	return RequestParams{
+		Offset:   offset,
+		Limit:    limit,
+		Category: category,
+		PriceLt:  priceLt,
 	}
 }
