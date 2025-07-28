@@ -51,11 +51,6 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 		api.ErrorResponse(w, http.StatusInternalServerError, "failed to fetch product details")
 		return
 	}
-	// Check if product exists
-	if product == nil {
-		api.ErrorResponse(w, http.StatusNotFound, "product not found")
-		return
-	}
 
 	// Inherit product price for variants without a specific price
 	for i := range product.Variants {
