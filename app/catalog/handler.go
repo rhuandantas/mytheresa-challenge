@@ -2,9 +2,8 @@ package catalog
 
 import (
 	"encoding/json"
+	"github.com/mytheresa/go-hiring-challenge/app/repositories"
 	"net/http"
-
-	"github.com/mytheresa/go-hiring-challenge/models"
 )
 
 type Response struct {
@@ -16,17 +15,17 @@ type Product struct {
 	Price float64 `json:"price"`
 }
 
-type CatalogHandler struct {
-	repo *models.ProductsRepository
+type Handler struct {
+	repo repositories.ProductRepository
 }
 
-func NewCatalogHandler(r *models.ProductsRepository) *CatalogHandler {
-	return &CatalogHandler{
+func NewCatalogHandler(r repositories.ProductRepository) *Handler {
+	return &Handler{
 		repo: r,
 	}
 }
 
-func (h *CatalogHandler) HandleGet(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	res, err := h.repo.GetAllProducts()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
