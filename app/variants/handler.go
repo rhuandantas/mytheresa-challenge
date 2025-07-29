@@ -2,9 +2,10 @@ package variants
 
 import (
 	"errors"
+	"github.com/gorilla/mux"
 	"github.com/mytheresa/go-hiring-challenge/app/api"
-	"github.com/mytheresa/go-hiring-challenge/app/models"
 	"github.com/mytheresa/go-hiring-challenge/app/repositories"
+	"github.com/mytheresa/go-hiring-challenge/models"
 	"gorm.io/gorm"
 	"net/http"
 	"strconv"
@@ -60,9 +61,14 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	price, ok := product.Price.Float64()
+	if !ok {
+		price = product.Price.InexactFloat64()
+	}
+
 	res := Response{
 		Code:     product.Code,
-		Price:    product.Price.InexactFloat64(),
+		Price:    price,
 		Category: product.Category.Name,
 		Variants: product.Variants,
 	}
