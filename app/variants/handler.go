@@ -28,9 +28,10 @@ func NewVariantHandler(r repositories.ProductRepository) *Handler {
 }
 
 func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Path[len("/catalog/"):]
-
-	if id == "" {
+	// Extract product ID from URL parameters
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+	if !ok {
 		api.ErrorResponse(w, http.StatusBadRequest, "product ID is required")
 		return
 	}
