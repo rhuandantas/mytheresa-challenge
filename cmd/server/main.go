@@ -30,9 +30,11 @@ func main() {
 	db, close := database.New(
 		os.Getenv("POSTGRES_USER"),
 		os.Getenv("POSTGRES_PASSWORD"),
+		os.Getenv("POSTGRES_HOST"),
 		os.Getenv("POSTGRES_DB"),
 		os.Getenv("POSTGRES_PORT"),
 	)
+
 	defer close()
 
 	// Initialize handlers
@@ -47,7 +49,7 @@ func main() {
 
 	// Set up the HTTP server
 	srv := &http.Server{
-		Addr:    fmt.Sprintf("localhost:%s", os.Getenv("HTTP_PORT")),
+		Addr:    fmt.Sprintf(":%s", os.Getenv("HTTP_PORT")),
 		Handler: mux,
 	}
 
