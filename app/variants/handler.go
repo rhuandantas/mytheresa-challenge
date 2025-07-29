@@ -28,6 +28,8 @@ func NewVariantHandler(r repositories.ProductRepository) *Handler {
 	}
 }
 
+// HandleGet handles the request to get product details by ID
+// It returns the product code, price, category, and variants.
 func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	// Extract product ID from URL parameters
 	vars := mux.Vars(r)
@@ -48,6 +50,7 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			api.ErrorResponse(w, http.StatusNotFound, "product not found")
+			return
 		}
 
 		api.ErrorResponse(w, http.StatusInternalServerError, "failed to fetch product details")
@@ -61,6 +64,7 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Convert price to float64, handling both exact and inexact cases
 	price, ok := product.Price.Float64()
 	if !ok {
 		price = product.Price.InexactFloat64()

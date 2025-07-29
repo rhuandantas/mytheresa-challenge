@@ -11,6 +11,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/mytheresa/go-hiring-challenge/app/catalog"
 	"github.com/mytheresa/go-hiring-challenge/app/database"
@@ -45,14 +46,14 @@ func main() {
 	variant := variants.NewVariantHandler(prodRepo)
 
 	// Set up routing
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /catalog", cat.HandleGet)
-	mux.HandleFunc("GET /catalog/{id}", variant.HandleGet)
+	r := mux.NewRouter()
+	r.HandleFunc("/catalog", cat.HandleGet).Methods(http.MethodGet)
+	r.HandleFunc("/catalog/{id}", variant.HandleGet).Methods(http.MethodGet)
 
 	// Set up the HTTP server
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", os.Getenv("HTTP_PORT")),
-		Handler: mux,
+		Handler: r,
 	}
 
 	// Start the server
