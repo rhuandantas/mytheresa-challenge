@@ -30,5 +30,7 @@ This repository contains a Go application for managing products and their prices
   - `make test`: Will run the tests.
   - `make run`: Will start the application.
   - `make docker-down`: Will stop the docker containers.
+  - `make mocks`: Will generate the mocks for some interfaces used in tests.
+  - `make test-ginkgo`: Will run the tests using Ginkgo.
 
 Follow up for the assignemnt here: [ASSIGNMENT.md](ASSIGNMENT.md)
