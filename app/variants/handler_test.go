@@ -3,6 +3,7 @@ package variants
 import (
 	"encoding/json"
 	"errors"
+	"github.com/gorilla/mux"
 	models2 "github.com/mytheresa/go-hiring-challenge/models"
 	"github.com/shopspring/decimal"
 	"net/http"
@@ -50,6 +51,7 @@ var _ = Describe("Variant Handler", func() {
 		mockRepo.EXPECT().GetProductDetails(productID).Return(product, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/catalog/"+strconv.FormatUint(productID, 10), nil)
+		req = mux.SetURLVars(req, map[string]string{"id": strconv.FormatUint(productID, 10)})
 		handler.HandleGet(rr, req)
 
 		Expect(rr.Code).To(Equal(http.StatusOK))
@@ -73,6 +75,7 @@ var _ = Describe("Variant Handler", func() {
 		mockRepo.EXPECT().GetProductDetails(productID).Return(nil, gorm.ErrRecordNotFound)
 
 		req := httptest.NewRequest(http.MethodGet, "/catalog/"+strconv.FormatUint(productID, 10), nil)
+		req = mux.SetURLVars(req, map[string]string{"id": strconv.FormatUint(productID, 10)})
 		handler.HandleGet(rr, req)
 
 		Expect(rr.Code).To(Equal(http.StatusNotFound))
@@ -95,6 +98,7 @@ var _ = Describe("Variant Handler", func() {
 		mockRepo.EXPECT().GetProductDetails(productID).Return(nil, errors.New("db error"))
 
 		req := httptest.NewRequest(http.MethodGet, "/catalog/"+strconv.FormatUint(productID, 10), nil)
+		req = mux.SetURLVars(req, map[string]string{"id": strconv.FormatUint(productID, 10)})
 		handler.HandleGet(rr, req)
 		Expect(rr.Code).To(Equal(http.StatusInternalServerError))
 	})
