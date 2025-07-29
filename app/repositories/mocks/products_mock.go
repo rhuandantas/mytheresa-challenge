@@ -10,9 +10,9 @@
 package repo_mock
 
 import (
+	"github.com/mytheresa/go-hiring-challenge/models"
 	reflect "reflect"
 
-	models "github.com/mytheresa/go-hiring-challenge/app/models"
 	gomock "go.uber.org/mock/gomock"
 )
 

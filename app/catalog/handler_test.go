@@ -3,8 +3,8 @@ package catalog
 import (
 	"encoding/json"
 	"errors"
-	"github.com/mytheresa/go-hiring-challenge/app/models"
 	repo_mock "github.com/mytheresa/go-hiring-challenge/app/repositories/mocks"
+	models2 "github.com/mytheresa/go-hiring-challenge/models"
 	"github.com/shopspring/decimal"
 	"testing"
 
@@ -37,11 +37,11 @@ var _ = Describe("Catalog Handler", func() {
 	})
 
 	It("returns products and total on success", func() {
-		products := []models.Product{
+		products := []models2.Product{
 			{
 				Code:  "P1",
 				Price: decimal.NewFromFloat(1),
-				Category: models.Category{
+				Category: models2.Category{
 					Name: "Category1",
 				},
 			},

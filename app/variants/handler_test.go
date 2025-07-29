@@ -3,13 +3,13 @@ package variants
 import (
 	"encoding/json"
 	"errors"
+	models2 "github.com/mytheresa/go-hiring-challenge/models"
 	"github.com/shopspring/decimal"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"testing"
 
-	"github.com/mytheresa/go-hiring-challenge/app/models"
 	repo_mock "github.com/mytheresa/go-hiring-challenge/app/repositories/mocks"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -38,11 +38,11 @@ var _ = Describe("Variant Handler", func() {
 
 	It("returns product details with variants on success", func() {
 		productID := uint64(1)
-		product := &models.Product{
+		product := &models2.Product{
 			Code:     "P1",
 			Price:    decimal.NewFromFloat(100.0),
-			Category: models.Category{Name: "Shoes"},
-			Variants: []models.Variant{
+			Category: models2.Category{Name: "Shoes"},
+			Variants: []models2.Variant{
 				{ID: 1, Name: "Red", Price: decimal.NewFromFloat(0)},
 				{ID: 2, Name: "Blue", Price: decimal.NewFromFloat(120)},
 			},

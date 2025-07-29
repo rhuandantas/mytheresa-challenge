@@ -1,7 +1,7 @@
 package repositories
 
 import (
-	"github.com/mytheresa/go-hiring-challenge/app/models"
+	"github.com/mytheresa/go-hiring-challenge/models"
 	"gorm.io/gorm"
 )
 
