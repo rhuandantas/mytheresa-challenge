@@ -3,22 +3,26 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/mytheresa/go-hiring-challenge/app/repositories"
+	"github.com/mytheresa/go-hiring-challenge/app/variants"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/mytheresa/go-hiring-challenge/app/catalog"
 	"github.com/mytheresa/go-hiring-challenge/app/database"
-	"github.com/mytheresa/go-hiring-challenge/models"
 )
 
 func main() {
 	// Load environment variables from .env file
-	if err := godotenv.Load(".env"); err != nil {
-		log.Fatalf("Error loading .env file: %s", err)
+	if os.Getenv("ENV") != "production" {
+		if err := godotenv.Load(".env"); err != nil {
+			log.Fatalf("Error loading .env file: %s", err)
+		}
 	}
 
 	// signal handling for graceful shutdown
@@ -29,23 +33,27 @@ func main() {
 	db, close := database.New(
 		os.Getenv("POSTGRES_USER"),
 		os.Getenv("POSTGRES_PASSWORD"),
+		os.Getenv("POSTGRES_HOST"),
 		os.Getenv("POSTGRES_DB"),
 		os.Getenv("POSTGRES_PORT"),
 	)
+
 	defer close()
 
 	// Initialize handlers
-	prodRepo := models.NewProductsRepository(db)
+	prodRepo := repositories.NewProductsRepository(db)
 	cat := catalog.NewCatalogHandler(prodRepo)
+	variant := variants.NewVariantHandler(prodRepo)
 
 	// Set up routing
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /catalog", cat.HandleGet)
+	r := mux.NewRouter()
+	r.HandleFunc("/catalog", cat.HandleGet).Methods(http.MethodGet)
+	r.HandleFunc("/catalog/{id}", variant.HandleGet).Methods(http.MethodGet)
 
 	// Set up the HTTP server
 	srv := &http.Server{
-		Addr:    fmt.Sprintf("localhost:%s", os.Getenv("HTTP_PORT")),
-		Handler: mux,
+		Addr:    fmt.Sprintf(":%s", os.Getenv("HTTP_PORT")),
+		Handler: r,
 	}
 
 	// Start the server

@@ -14,14 +14,17 @@ import (
 
 func main() {
 	// Load environment variables from .env file
-	if err := godotenv.Load(".env"); err != nil {
-		log.Fatalf("Error loading .env file: %s", err)
+	if os.Getenv("ENV") != "production" {
+		if err := godotenv.Load(".env"); err != nil {
+			log.Fatalf("Error loading .env file: %s", err)
+		}
 	}
 
 	// Initialize database connection
 	db, close := database.New(
 		os.Getenv("POSTGRES_USER"),
 		os.Getenv("POSTGRES_PASSWORD"),
+		os.Getenv("POSTGRES_HOST"),
 		os.Getenv("POSTGRES_DB"),
 		os.Getenv("POSTGRES_PORT"),
 	)
