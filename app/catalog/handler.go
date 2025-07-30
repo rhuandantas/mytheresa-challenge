@@ -3,6 +3,7 @@ package catalog
 import (
 	"github.com/mytheresa/go-hiring-challenge/app/api"
 	"github.com/mytheresa/go-hiring-challenge/app/repositories"
+	"github.com/mytheresa/go-hiring-challenge/models"
 	"net/http"
 	"strconv"
 )
@@ -35,6 +36,8 @@ func NewCatalogHandler(r repositories.ProductRepository) *Handler {
 	}
 }
 
+// HandleGet handles the request to get a list of products based on query parameters.
+// It returns a paginated list of products with optional filters for category and price.
 func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	params, err := parseRequestParams(r)
 	if err != nil {
@@ -42,33 +45,42 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate request parameters
 	products, total, err := h.repo.GetAllProducts(params.Offset, params.Limit, params.Category, params.PriceLt)
 	if err != nil {
 		api.ErrorResponse(w, http.StatusInternalServerError, "failed to fetch products")
 		return
 	}
 
-	// Map response
+	response := h.mapResponse(products, total)
+
+	api.OKResponse(w, response)
+}
+
+// mapResponse converts the list of products and total count into the Response format.
+func (h *Handler) mapResponse(products []models.Product, total int64) Response {
 	respProducts := make([]Product, len(products))
 	for i, p := range products {
+		price, ok := p.Price.Float64()
+		if !ok {
+			price = p.Price.InexactFloat64()
+		}
+
 		respProducts[i] = Product{
 			Code:     p.Code,
-			Price:    p.Price.InexactFloat64(),
+			Price:    price,
 			Category: p.Category.Name,
 		}
 	}
-
-	// Return the products as a JSON response
-	w.Header().Set("Content-Type", "application/json")
 
 	response := Response{
 		Products: respProducts,
 		Total:    total,
 	}
-
-	api.OKResponse(w, response)
+	return response
 }
+
+// parseRequestParams extracts and validates request parameters from the HTTP request.
+// It returns a RequestParams struct or an error if the parameters are invalid.
 func parseRequestParams(r *http.Request) (*RequestParams, error) {
 	var (
 		offset = 0

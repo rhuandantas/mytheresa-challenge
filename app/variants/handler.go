@@ -31,18 +31,9 @@ func NewVariantHandler(r repositories.ProductRepository) *Handler {
 // HandleGet handles the request to get product details by ID
 // It returns the product code, price, category, and variants.
 func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
-	// Extract product ID from URL parameters
-	vars := mux.Vars(r)
-	id, ok := vars["id"]
-	if !ok {
-		api.ErrorResponse(w, http.StatusBadRequest, "product ID is required")
-		return
-	}
-
-	// parse to uint
-	productID, err := strconv.ParseUint(id, 10, 32)
+	productID, err := h.getIdParam(w, r)
 	if err != nil {
-		api.ErrorResponse(w, http.StatusBadRequest, "invalid product ID")
+		api.ErrorResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -57,6 +48,12 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	res := h.mapResponse(product)
+
+	api.OKResponse(w, res)
+}
+
+func (h *Handler) mapResponse(product *models.Product) Response {
 	// Inherit product price for variants without a specific price
 	for i := range product.Variants {
 		if product.Variants[i].Price.IsZero() {
@@ -64,7 +61,6 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Convert price to float64, handling both exact and inexact cases
 	price, ok := product.Price.Float64()
 	if !ok {
 		price = product.Price.InexactFloat64()
@@ -76,6 +72,25 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 		Category: product.Category.Name,
 		Variants: product.Variants,
 	}
+	return res
+}
 
-	api.OKResponse(w, res)
+// getIdParam extracts the product ID from the request parameters.
+// It returns the product ID as a uint64 and an error if the ID is invalid or
+func (h *Handler) getIdParam(w http.ResponseWriter, r *http.Request) (uint64, error) {
+	// Extract product ID from URL parameters
+	vars := mux.Vars(r)
+	id, ok := vars["id"]
+	if !ok {
+		api.ErrorResponse(w, http.StatusBadRequest, "product ID is required")
+		return 0, errors.New("product ID is required")
+	}
+
+	// parse to uint
+	productID, err := strconv.ParseUint(id, 10, 32)
+	if err != nil {
+		return 0, errors.New("invalid product ID")
+	}
+
+	return productID, nil
 }
